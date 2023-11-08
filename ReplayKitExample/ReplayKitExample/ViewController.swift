@@ -16,6 +16,15 @@ class ViewController: UIViewController {
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     @IBOutlet weak var broadcastButton: UIButton!
     // Treat this view as generic, since RPSystemBroadcastPickerView is only available on iOS 12.0 and above.
+    @IBAction func startBroadcastPro(_ sender: Any) {
+        let broadcastActivityViewController = RPBroadcastActivityViewController()
+
+                // Configure the broadcast activity view controller (optional)
+                broadcastActivityViewController.delegate = self
+
+                // Present the broadcast activity view controller
+                self.present(broadcastActivityViewController, animated: true, completion: nil)
+    }
     @IBOutlet weak var broadcastPickerView: UIView?
     @IBOutlet weak var conferenceButton: UIButton?
     @IBOutlet weak var infoLabel: UILabel?
@@ -31,7 +40,7 @@ class ViewController: UIViewController {
     var broadcastController: RPBroadcastController?
 
     var accessToken: String = "TWILIO_ACCESS_TOKEN"
-    let tokenUrl = "http://127.0.0.1:5000/"
+    let tokenUrl = "https://twiliochatroomaccesstoken-8696.twil.io/accessToken?user=khanhng"
 
     static let kBroadcastExtensionBundleId = "com.twilio.ReplayKitExample.BroadcastVideoExtension"
     static let kBroadcastExtensionSetupUiBundleId = "com.twilio.ReplayKitExample.BroadcastVideoExtensionSetupUI"
@@ -109,18 +118,20 @@ class ViewController: UIViewController {
 
     @available(iOS 12.0, *)
     func setupPickerView() {
+        print("setupPickerView")
         // Swap the button for an RPSystemBroadcastPickerView.
         #if !targetEnvironment(simulator)
         // iOS 13.0 throws an NSInvalidArgumentException when RPSystemBroadcastPickerView is used to start a broadcast.
         // https://stackoverflow.com/questions/57163212/get-nsinvalidargumentexception-when-trying-to-present-rpsystembroadcastpickervie
-        if #available(iOS 13.0, *) {
-            // The issue is resolved in iOS 13.1.
-            if #available(iOS 13.1, *) {
-            } else {
-                broadcastButton.addTarget(self, action: #selector(tapBroadcastPickeriOS13(sender:)), for: UIControl.Event.touchUpInside)
-                return
-            }
-        }
+//        if #available(iOS 13.0, *) {
+//            broadcastButton.addTarget(self, action: #selector(tapBroadcastPickeriOS13(sender:)), for: UIControl.Event.touchUpInside)
+//            // The issue is resolved in iOS 13.1.
+//            if #available(iOS 13.1, *) {
+//            } else {
+//                broadcastButton.addTarget(self, action: #selector(tapBroadcastPickeriOS13(sender:)), for: UIControl.Event.touchUpInside)
+//                return
+//            }
+//        }
 
         let pickerView = RPSystemBroadcastPickerView(frame: CGRect(x: 0,
                                                                    y: 0,
@@ -131,13 +142,12 @@ class ViewController: UIViewController {
 
         // Theme the picker view to match the white that we want.
         if let button = pickerView.subviews.first as? UIButton {
-            button.imageView?.tintColor = UIColor.white
+            button.imageView?.tintColor = UIColor.red
         }
 
         view.addSubview(pickerView)
-
         self.broadcastPickerView = pickerView
-        broadcastButton.isEnabled = false
+        //broadcastButton.isEnabled = false
         broadcastButton.titleEdgeInsets = UIEdgeInsets(top: 34, left: 0, bottom: 0, right: 0)
 
         let centerX = NSLayoutConstraint(item:pickerView,
@@ -154,7 +164,7 @@ class ViewController: UIViewController {
                                          toItem: broadcastButton,
                                          attribute: NSLayoutConstraint.Attribute.centerY,
                                          multiplier: 1,
-                                         constant: -10);
+                                         constant: -100);
         self.view.addConstraint(centerY)
         let width = NSLayoutConstraint(item: pickerView,
                                        attribute: NSLayoutConstraint.Attribute.width,
@@ -172,10 +182,15 @@ class ViewController: UIViewController {
                                         multiplier: 1,
                                         constant: 0);
         self.view.addConstraint(height)
+
         #endif
     }
-
+    @objc func broadcastStarted() {
+        // Handle the broadcast start action here
+        print("Broadcast has started!")
+    }
     @objc func tapBroadcastPickeriOS13(sender: UIButton) {
+        print("tapBroadcastPickeriOS13")
         let message = "ReplayKit broadcasts can not be started using the broadcast picker on iOS 13.0. Please upgrade to iOS 13.1+, or start a broadcast from the screen recording widget in control center instead."
         let alertController = UIAlertController(title: "Start Broadcast", message: message, preferredStyle: .actionSheet)
 
@@ -201,6 +216,8 @@ class ViewController: UIViewController {
 
     // This action is only invoked on iOS 11.x. On iOS 12.0 this is handled by RPSystemBroadcastPickerView.
     @IBAction func startBroadcast(_ sender: Any) {
+        
+        print("broadcast")
         if let controller = self.broadcastController {
             controller.finishBroadcast { [unowned self] error in
                 DispatchQueue.main.async {
@@ -223,19 +240,21 @@ class ViewController: UIViewController {
     }
 
     @IBAction func startConference( sender: UIButton) {
-        sender.isEnabled = false
-        if self.screenTrack != nil {
-            stopConference(error: nil)
-        } else {
-            startConference()
-        }
+        print("startConference")
+        //sender.isEnabled = false
+        startConference()
+//        if self.screenTrack != nil {
+//            stopConference(error: nil)
+//        } else {
+//            startConference()
+//        }
     }
 
     // MARK:- Private
     private func checkRecordingAvailability() {
         let isScreenRecordingAvailable = appScreenSource?.isAvailable ?? false
         broadcastButton.isHidden = !isScreenRecordingAvailable
-        conferenceButton?.isHidden = !isScreenRecordingAvailable
+        //conferenceButton?.isHidden = !isScreenRecordingAvailable
         infoLabel?.text = isScreenRecordingAvailable ? ViewController.kRecordingAvailableInfo : ViewController.kRecordingNotAvailableInfo
     }
 
@@ -294,11 +313,11 @@ class ViewController: UIViewController {
     private func startConference() {
         self.broadcastButton.isEnabled = false
         if let picker = self.broadcastPickerView {
-            picker.isHidden = true
+            picker.isHidden = false
             broadcastButton.setTitle("", for: .normal)
             broadcastButton.isHidden = true
         }
-        self.broadcastPickerView?.isHidden = true
+        //self.broadcastPickerView?.isHidden = true
         self.infoLabel?.isHidden = true
         self.infoLabel?.text = ""
 
@@ -422,10 +441,11 @@ class ViewController: UIViewController {
 // MARK:- RPBroadcastActivityViewControllerDelegate
 extension ViewController: RPBroadcastActivityViewControllerDelegate {
     func broadcastActivityViewController(_ broadcastActivityViewController: RPBroadcastActivityViewController, didFinishWith broadcastController: RPBroadcastController?, error: Error?) {
+        print("start RPBroadcastActivityViewControllerDelegate")
         DispatchQueue.main.async {
             self.broadcastController = broadcastController
             self.broadcastController?.delegate = self
-            self.conferenceButton?.isEnabled = false
+           // self.conferenceButton?.isEnabled = false
             self.infoLabel?.text = ""
 
             broadcastActivityViewController.dismiss(animated: true) {
@@ -438,6 +458,7 @@ extension ViewController: RPBroadcastActivityViewControllerDelegate {
 // MARK:- RPBroadcastControllerDelegate
 extension ViewController: RPBroadcastControllerDelegate {
     func broadcastController(_ broadcastController: RPBroadcastController, didFinishWithError error: Error?) {
+        print("start RPBroadcastActivityViewControllerDelegate")
         // Update the button UI.
         DispatchQueue.main.async {
             self.broadcastController = nil
@@ -591,3 +612,4 @@ extension ViewController : UIDocumentPickerDelegate {
         self.navigationController?.popViewController(animated: true)
     }
 }
+ 

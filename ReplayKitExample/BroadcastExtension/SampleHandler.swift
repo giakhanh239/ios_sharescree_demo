@@ -20,7 +20,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     let audioDevice = ExampleReplayKitAudioCapturer(sampleType: SampleHandler.kAudioSampleType)
 
     var accessToken: String = "TWILIO_ACCESS_TOKEN"
-    let tokenUrl = "http://127.0.0.1:5000/"
+    let tokenUrl = "https://twiliochatroomaccesstoken-8696.twil.io/accessToken?user=abc"
 
     var statsTimer: Timer?
     static let kBroadcastSetupInfoRoomNameKey = "roomName"
@@ -33,6 +33,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     static let kVideoCodec: VideoCodec = .H264
     
     func connectAndStartBroadcast(withSetupInfo setupInfo: [String : NSObject]?) {
+        print("connectAndStartBroadcast")
         // This source will attempt to produce smaller buffers with fluid motion.
         let options = ReplayKitVideoSource.TelecineOptions.p30to24or25
         let (encodingParams, outputFormat) = ReplayKitVideoSource.getParametersForUseCase(videoCodec: SampleHandler.kVideoCodec,
@@ -91,6 +92,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     }
 
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
+        print("broadcastStarted")
         TwilioVideoSDK.audioDevice = self.audioDevice
         
         // User has requested to start the broadcast. Setup info from the UI extension can be supplied but is optional.
@@ -113,18 +115,21 @@ class SampleHandler: RPBroadcastSampleHandler {
     }
 
     override func broadcastPaused() {
+        print("broadcastPaused")
         // User has requested to pause the broadcast. Samples will stop being delivered.
         self.audioTrack?.isEnabled = false
         self.screenTrack?.isEnabled = false
     }
 
     override func broadcastResumed() {
+        print("broadcastResumed")
         // User has requested to resume the broadcast. Samples delivery will resume.
         self.audioTrack?.isEnabled = true
         self.screenTrack?.isEnabled = true
     }
 
     override func broadcastFinished() {
+        print("broadcastFinished")
         // User has requested to finish the broadcast.
         DispatchQueue.main.async {
             self.room?.disconnect()
@@ -138,6 +143,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     }
 
     override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
+        print("processSampleBuffer")
         switch sampleBufferType {
         case RPSampleBufferType.video:
             videoSource?.processFrame(sampleBuffer: sampleBuffer)

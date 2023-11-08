@@ -16,6 +16,9 @@ struct PlatformUtils {
         return isSim
     }()
 }
+struct Token: Codable {
+    var accessToken: String
+}
 
 struct TokenUtils {    
     static func fetchToken(from url : String, completionHandler: @escaping (String, Error?) -> Void) {
@@ -23,15 +26,19 @@ struct TokenUtils {
         let requestURL: URL = URL(string: url)!
         let task = URLSession.shared.dataTask(with: requestURL) {
             (data, response, error) in
-            if let error = error {
+            do{   if let error = error {
                 completionHandler(token, error)
                 return
             }
-            
-            if let data = data, let tokenReponse = String(data: data, encoding: .utf8) {
-                token = tokenReponse
-                completionHandler(token, nil)
-            }
+                
+                if let data = data, let _ = String(data: data, encoding: .utf8) {
+                    let decoder = JSONDecoder()
+                    let tokenData = try decoder.decode(Token.self, from: data)
+                    token = tokenData.accessToken
+                    completionHandler(token, nil)
+                }} catch {
+                    completionHandler(token, error)
+                }
         }
         task.resume()
     }
