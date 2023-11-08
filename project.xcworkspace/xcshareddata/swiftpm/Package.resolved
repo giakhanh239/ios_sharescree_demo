@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "twilio-video-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/twilio/twilio-video-ios",
+      "state" : {
+        "revision" : "ce0415a404af8e24bd6a3243712c3833d512385e",
+        "version" : "5.7.1"
+      }
+    }
+  ],
+  "version" : 2
+}
